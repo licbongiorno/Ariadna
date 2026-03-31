@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ariadna - Red de Salud Mental Paravachasca</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="#" class="logo">Ariadna</a>
+            
+            <div class="auth-buttons">
+                <button id="btn-login-paciente" class="btn btn-outline">Soy Paciente</button>
+                <button id="btn-login-prof" class="btn btn-outline">Acceso Profesionales</button>
+                
+                <span id="user-role-badge" class="role-badge hidden"></span>
+                <button id="btn-open-modal-paciente" class="btn btn-outline hidden">Mi Ficha Privada</button>
+                <button id="btn-open-modal" class="btn btn-primary hidden">Crear Anuncio</button>
+                <button id="btn-logout" class="btn btn-text hidden">Cerrar Sesión</button>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h2 class="hero-title">Ariadna</h2>
+            <h3 class="hero-subtitle">Red de Salud Mental · Paravachasca</h3>
+            <p class="hero-copy">
+                En el mito antiguo, Ariadna entrega el hilo para poder salir del laberinto. 
+                Nuestra red nace con ese mismo propósito: conectar a los habitantes del Valle 
+                con los profesionales adecuados. <strong>No te sacamos del laberinto, pero te acercamos 
+                el hilo para que encuentres tu propia salida.</strong>
+            </p>
+        </div>
+    </section>
+
+    <div class="search-wrapper">
+        <div class="search-bar">
+            <input type="text" id="input-search" placeholder="¿Qué estás buscando hoy? (Nombre, síntoma, terapia...)">
+            <select id="select-category">
+                <option value="Todas">Todas las especialidades</option>
+                <option value="Psicólogo/a">Psicólogo/a</option>
+                <option value="Psiquiatra">Psiquiatra</option>
+                <option value="Acompañante Terapéutico">Acompañante Terapéutico</option>
+                <option value="Afín a la salud mental">Afín a la salud mental</option>
+            </select>
+        </div>
+    </div>
+    
+    <div id="stats-banner" class="stats-banner hidden">
+        </div>
+
+    <main class="container">
+        <div id="profesionales-grid" class="grid">
+            <div class="empty-state">
+                <p class="loading-text" style="font-size: 1.2rem; color: var(--primary-dark);">Buscando en la red...</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; <span id="current-year"></span> Ariadna | Tejiendo redes en Paravachasca <br> Creado por <a href="https://wa.me/5493516575261" target="_blank" rel="noopener noreferrer">Lic. Bongiorno Nicolas</a></p>
+    </footer>
+
+    <div id="modal-paciente" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Mi Ficha Privada</h2>
+                <button id="btn-close-paciente" class="close-btn">&times;</button>
+            </div>
+            <div class="privacy-notice">
+                🔒 <strong>Espacio seguro:</strong> Estos datos son 100% privados. Solo sirven para agilizar tus búsquedas y presentar tu nombre al contactar a un profesional.
+            </div>
+            
+            <form id="form-paciente">
+                <div class="form-group">
+                    <label>¿Cómo te llamas?</label>
+                    <input type="text" id="paciente-nombre" placeholder="Ej: María Pérez" required>
+                </div>
+                <div class="form-group">
+                    <label>Motivo principal de tu búsqueda (Solo para vos)</label>
+                    <input type="text" id="paciente-motivo" placeholder="Ej: Ansiedad, empezar terapia, niño con autismo...">
+                </div>
+                <button type="submit" class="btn btn-primary full-width" style="margin-top: 0.5rem;">Guardar mi ficha</button>
+            </form>
+
+            <hr style="border: 0; border-top: 1px dashed var(--border); margin: 2.5rem 0 1.5rem 0;">
+            
+            <div class="form-group">
+                <h3 style="font-size: 1.2rem; color: var(--primary-dark); font-family: 'DM Serif Display', serif; margin-bottom: 0.5rem;">Mi Hilo (Profesionales Guardados)</h3>
+                <div id="lista-favoritos-paciente" class="favoritos-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-registro" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Publicar Anuncio</h2>
+                <button id="btn-close-modal" class="close-btn">&times;</button>
+            </div>
+            <form id="form-profesional">
+                <input type="hidden" id="anuncio-id">
+                <div class="form-group">
+                    <label>Nombre Completo del Profesional</label>
+                    <input type="text" id="nombre" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Matrícula (MP/MN)</label>
+                        <input type="text" id="matricula" required>
+                    </div>
+                    <div class="form-group">
+                        <label>WhatsApp de Contacto</label>
+                        <input type="tel" id="whatsapp" placeholder="Ej: 3516575261" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Especialidad</label>
+                        <select id="categoria" required>
+                            <option value="Psicólogo/a">Psicólogo/a</option>
+                            <option value="Psiquiatra">Psiquiatra</option>
+                            <option value="Acompañante Terapéutico">Acompañante Terapéutico</option>
+                            <option value="Afín a la salud mental">Afín a la salud mental</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Modalidad de Atención</label>
+                        <select id="modalidad" required>
+                            <option value="Solo Online">Solo Online</option>
+                            <option value="Solo Presencial">Solo Presencial</option>
+                            <option value="Ambos (Online y Presencial)">Ambos (Online y Presencial)</option>
+                            <option value="A Domicilio">A Domicilio</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Direcciones (Presiona 'Enter' para separar)</label>
+                    <textarea id="direcciones" rows="2" placeholder="Ej: Av. Belgrano 123, Alta Gracia" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Enfoque / Tipo de Terapia</label>
+                    <input type="text" id="terapia" placeholder="Ej: Psicoanálisis, Cognitivo-Conductual" required>
+                </div>
+                <div class="form-group">
+                    <label>Síntomas o Motivos de Consulta</label>
+                    <input type="text" id="sintomas" placeholder="Ej: Ansiedad, Depresión, Crisis Vitales" required>
+                </div>
+                <div class="form-group">
+                    <label>Obras Sociales y Prepagas (Separadas por coma)</label>
+                    <input type="text" id="obras" placeholder="Ej: OSDE, Apross, Particular" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Instagram (Opcional)</label>
+                        <input type="url" id="instagram" placeholder="https://instagram.com/tu_usuario">
+                    </div>
+                    <div class="form-group">
+                        <label>LinkedIn (Opcional)</label>
+                        <input type="url" id="linkedin" placeholder="https://linkedin.com/in/tu_perfil">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary full-width">Guardar Anuncio</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-ficha" class="modal hidden">
+        <div class="modal-content ficha-content">
+            <div class="modal-header">
+                <h2>Ficha del Profesional</h2>
+                <button id="btn-close-ficha" class="close-btn">&times;</button>
+            </div>
+            <div id="ficha-body"></div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
