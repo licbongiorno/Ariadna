@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Ariadna - Red de Salud Mental Paravachasca</title>
+    <meta name="description" content="Directorio de profesionales de salud mental en el Valle de Paravachasca.">
+    
+    <meta property="og:title" content="Ariadna - Red de Salud Mental">
+    <meta property="og:description" content="Encuentra al profesional de salud mental adecuado para ti. No te sacamos del laberinto, te acercamos el hilo.">
+    <meta property="og:image" content="https://tusitio.com/URL_DE_TU_IMAGEN_AQUI.jpg">
+    <meta property="og:url" content="https://ariadna-delta.vercel.app/">
+    <meta property="og:type" content="website">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        /* Estilo para el slogan al lado del logo */
+        .logo-tagline {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-left: 12px;
+            letter-spacing: 0.5px;
+            border-left: 2px solid var(--primary-light);
+            padding-left: 12px;
+        }
+        @media (max-width: 768px) {
+            .logo-tagline { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="intro-loader" class="intro-loader" aria-hidden="true">
+        <div class="loader-content"><p class="loader-text">Ariadna</p></div>
+    </div>
+    
+    <script>
+        window.addEventListener('load', () => { setTimeout(() => { document.getElementById('intro-loader')?.classList.add('hidden'); }, 1500); });
+        setTimeout(() => { document.getElementById('intro-loader')?.classList.add('hidden'); }, 3000);
+    </script>
+
+    <header class="header" role="banner">
+        <div class="header-content" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center;">
+                <a href="#" class="logo" aria-label="Inicio Ariadna" style="text-decoration: none;">Ariadna</a>
+                <span class="logo-tagline">Red de Salud Mental Paravachasca</span>
+            </div>
+            
+            <nav class="auth-buttons" aria-label="Navegación principal">
+                <button id="btn-login-paciente" class="btn btn-outline">Soy Paciente</button>
+                <button id="btn-login-prof" class="btn btn-outline">Soy Profesional</button>
+                <span id="user-role-badge" class="role-badge hidden" aria-live="polite"></span>
+                <button id="btn-open-modal-paciente" class="btn btn-outline hidden">Mi Ficha Privada</button>
+                <button id="btn-open-modal" class="btn btn-primary hidden">Crear Anuncio</button>
+                <button id="btn-logout" class="btn btn-text hidden">Cerrar Sesión</button>
+            </nav>
+        </div>
+
+        <div class="search-wrapper" role="search">
+            <div class="search-bar" style="max-width: 1100px; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <input type="text" id="input-search" placeholder="Buscar por nombre, especialidad, enfoque..." aria-label="Buscar profesional" style="flex: 2; min-width: 200px;">
+                
+                <select id="select-category" aria-label="Filtrar por categoría" style="flex: 1; min-width: 150px;">
+                    <option value="Todas">Especialidades</option>
+                    <option value="Psicólogo/a">Psicólogo/a</option>
+                    <option value="Psiquiatra">Psiquiatra</option>
+                    <option value="Acompañante Terapéutico">Acompañante T.</option>
+                    <option value="Afín a la salud mental">Afín</option>
+                </select>
+
+                <select id="select-modalidad" aria-label="Filtrar por modalidad" style="flex: 1; min-width: 120px;">
+                    <option value="Todas">Modalidad</option>
+                    <option value="Presencial">Presencial</option>
+                    <option value="Online">Online</option>
+                    <option value="Ambas">Ambas</option>
+                    <option value="A domicilio">A domicilio</option>
+                </select>
+
+                <select id="select-publico" aria-label="Filtrar por público" style="flex: 1; min-width: 120px;">
+                    <option value="Todos">Público</option>
+                    <option value="ninos">Niños</option>
+                    <option value="adolescentes">Adolescentes</option>
+                    <option value="adultos">Adultos</option>
+                    <option value="terceraEdad">Tercera Edad</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content" role="main">
+        <div id="profesionales-grid" class="grid" aria-live="polite">
+            <div class="empty-state"><h3>Cargando profesionales...</h3></div>
+        </div>
+    </main>
+
+    <div id="modal-paciente" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Mi Ficha Privada</h2>
+                <button id="btn-close-paciente" class="close-btn">&times;</button>
+            </div>
+            <div class="privacy-notice">🔒 <strong>Privacidad:</strong> Estos datos son 100% privados. Agilizan el contacto por WhatsApp.</div>
+            <form id="form-paciente">
+                <div class="form-group"><label>¿Cómo te llamas?</label><input type="text" id="paciente-nombre" required></div>
+                <div class="form-group"><label>Motivo de consulta (Breve)</label><textarea id="paciente-motivo" rows="2" placeholder="Opcional. Ej: Necesito terapia para mi hijo..."></textarea></div>
+                <button type="submit" class="btn btn-primary full-width">Guardar mis datos</button>
+            </form>
+            <h3 style="margin-top: 2rem;">Mis Profesionales Guardados</h3>
+            <div id="lista-favoritos-paciente" class="favoritos-list"><p>Cargando...</p></div>
+        </div>
+    </div>
+
+    <div id="modal-registro" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-content form-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Crear Nuevo Anuncio</h2>
+                <button id="btn-close-modal" class="close-btn">&times;</button>
+            </div>
+            <form id="form-profesional">
+                <input type="hidden" id="anuncio-id">
+                
+                <div class="form-row">
+                    <div class="form-group"><label for="nombre">Nombre Completo *</label><input type="text" id="nombre" required></div>
+                    <div class="form-group"><label for="matricula">Matrícula Profesional *</label><input type="text" id="matricula" required></div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="categoria">Categoría *</label>
+                        <select id="categoria" required>
+                            <option value="Psicólogo/a">Psicólogo/a</option>
+                            <option value="Psiquiatra">Psiquiatra</option>
+                            <option value="Acompañante Terapéutico">Acompañante Terapéutico</option>
+                            <option value="Afín a la salud mental">Afín a la salud mental</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="modalidad">Modalidad de Atención *</label>
+                        <select id="modalidad" required>
+                            <option value="Presencial">Presencial</option>
+                            <option value="Online">Online</option>
+                            <option value="Ambas">Ambas</option>
+                            <option value="A domicilio">A domicilio</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group"><label for="whatsapp">WhatsApp (Ej: 3547123456) *</label><input type="tel" id="whatsapp" required></div>
+                    <div class="form-group"><label for="precio">Valor de Sesión (Opcional)</label><input type="text" id="precio" placeholder="Ej: $15.000 o 'A convenir'"></div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group"><label for="terapia">Marco Teórico / Enfoque *</label><input type="text" id="terapia" placeholder="Ej: Psicoanálisis, TCC, Sistémica..." required></div>
+                    <div class="form-group"><label for="specialties">Especialidades (Opcional)</label><input type="text" id="specialties" placeholder="Ej: Ansiedad, Depresión, TEA..."></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Público que atiende *</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" id="atencion-ninos"> Niños</label>
+                        <label><input type="checkbox" id="atencion-adolescentes"> Adolescentes</label>
+                        <label><input type="checkbox" id="atencion-adultos"> Adultos</label>
+                        <label><input type="checkbox" id="atencion-terceraEdad"> Tercera Edad</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Tipos de Terapia *</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" id="terapia-individual"> Individual</label>
+                        <label><input type="checkbox" id="terapia-pareja"> Pareja</label>
+                        <label><input type="checkbox" id="terapia-familia"> Familia</label>
+                    </div>
+                </div>
+
+                <div class="form-group"><label for="obras">Obras Sociales / Prepagas (Separadas por coma)</label><input type="text" id="obras" placeholder="Ej: Particular, Apross, OSDE..."></div>
+                <div class="form-group"><label for="direcciones">Dirección de consultorio (Opcional)</label><textarea id="direcciones" rows="2" placeholder="Calle Número, Barrio, Ciudad"></textarea></div>
+
+                <div class="form-group" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                    <label style="margin-bottom: 8px;">Ubicación en el Mapa</label>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Busca tu dirección o haz clic en el mapa para fijar el pin.</p>
+                    <button type="button" id="btn-buscar-direccion" class="btn btn-outline full-width" style="margin-bottom: 10px; font-size: 0.9rem;">🔍 Buscar dirección en mapa</button>
+                    <div id="form-map-container" style="height: 250px; width: 100%; border-radius: 8px; border: 1px solid var(--border); z-index: 1;"></div>
+                    <input type="hidden" id="form-lat">
+                    <input type="hidden" id="form-lng">
+                    <button type="button" id="btn-reset-map" class="btn btn-text" style="padding: 0.3rem; margin-top: 5px; font-size: 0.8rem; color: #ef4444;">🗑️ Borrar pin del mapa</button>
+                </div>
+
+                <div class="form-group"><label>Sobre mí (Opcional)</label><textarea id="aboutMe" rows="3"></textarea></div>
+
+                <div class="form-row">
+                    <div class="form-group"><label>Instagram (Opcional)</label><input type="text" id="instagram"></div>
+                    <div class="form-group"><label>LinkedIn (Opcional)</label><input type="text" id="linkedin"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Facebook (Opcional)</label><input type="text" id="facebook"></div>
+                    <div class="form-group"><label>Sitio Web (Opcional)</label><input type="text" id="web"></div>
+                </div>
+                <button type="submit" id="btn-submit-profesional" class="btn btn-primary full-width">Guardar Anuncio</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-ficha" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-content ficha-content">
+            <div class="modal-header"><h2>Ficha del Profesional</h2><button id="btn-close-ficha" class="close-btn">&times;</button></div>
+            <div id="ficha-body"></div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>
