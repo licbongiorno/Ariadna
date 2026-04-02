@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Ariadna - Red de Salud Mental Paravachasca</title>
+    <meta name="description" content="Directorio de profesionales de salud mental en el Valle de Paravachasca.">
+    
+    <meta property="og:title" content="Ariadna - Red de Salud Mental">
+    <meta property="og:description" content="Encuentra al profesional de salud mental adecuado para ti. No te sacamos del laberinto, te acercamos el hilo.">
+    <meta property="og:image" content="https://tusitio.com/URL_DE_TU_IMAGEN_AQUI.jpg">
+    <meta property="og:url" content="https://ariadna-delta.vercel.app/">
+    <meta property="og:type" content="website">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="intro-loader" class="intro-loader" aria-hidden="true">
+        <div class="loader-content"><p class="loader-text">Ariadna</p></div>
+    </div>
+    
+    <script>
+        window.addEventListener('load', () => {
+            setTimeout(() => { document.getElementById('intro-loader')?.classList.add('hidden'); }, 1500);
+        });
+        // Si por alguna razón falla el load, se oculta a los 3 segundos de emergencia
+        setTimeout(() => { document.getElementById('intro-loader')?.classList.add('hidden'); }, 3000);
+    </script>
+
+    <header class="header" role="banner">
+        <div class="header-content">
+            <a href="#" class="logo" aria-label="Inicio Ariadna">Ariadna</a>
+            <nav class="auth-buttons" aria-label="Navegación principal">
+                <button id="btn-login-paciente" class="btn btn-outline">Soy Paciente</button>
+                <button id="btn-login-prof" class="btn btn-outline">Soy Profesional</button>
+                <span id="user-role-badge" class="role-badge hidden" aria-live="polite"></span>
+                <button id="btn-open-modal-paciente" class="btn btn-outline hidden">Mi Ficha Privada</button>
+                <button id="btn-open-modal" class="btn btn-primary hidden">Crear Anuncio</button>
+                <button id="btn-logout" class="btn btn-text hidden">Cerrar Sesión</button>
+            </nav>
+        </div>
+        
+        <div class="search-wrapper" role="search">
+            <div class="search-bar" style="max-width: 900px; display: flex; align-items: center; gap: 0.5rem;">
+                <input type="text" id="input-search" placeholder="Buscar por nombre, especialidad, enfoque, terapia..." aria-label="Buscar profesional" style="flex: 2;">
+                <select id="select-category" aria-label="Filtrar por categoría" style="flex: 1;">
+                    <option value="Todas">Todas las especialidades</option>
+                    <option value="Psicólogo/a">Psicólogo/a</option>
+                    <option value="Psiquiatra">Psiquiatra</option>
+                    <option value="Acompañante Terapéutico">Acompañante Terapéutico</option>
+                    <option value="Afín a la salud mental">Afín a la salud mental</option>
+                </select>
+                <button id="btn-open-map" class="btn btn-primary" style="margin: 0;" aria-label="Ver mapa de profesionales">🗺️ Mapa</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container" role="main">
+        <div id="profesionales-grid" class="grid" aria-live="polite">
+            <div class="card skeleton-card"><div class="skeleton-header"><div class="skeleton-avatar"></div><div class="skeleton-text-group"><div class="skeleton-title"></div><div class="skeleton-subtitle"></div></div></div><div class="skeleton-body"></div><div class="skeleton-body short"></div><div class="skeleton-tags"></div></div>
+            <div class="card skeleton-card"><div class="skeleton-header"><div class="skeleton-avatar"></div><div class="skeleton-text-group"><div class="skeleton-title"></div><div class="skeleton-subtitle"></div></div></div><div class="skeleton-body"></div><div class="skeleton-body short"></div><div class="skeleton-tags"></div></div>
+            <div class="card skeleton-card"><div class="skeleton-header"><div class="skeleton-avatar"></div><div class="skeleton-text-group"><div class="skeleton-title"></div><div class="skeleton-subtitle"></div></div></div><div class="skeleton-body"></div><div class="skeleton-body short"></div><div class="skeleton-tags"></div></div>
+        </div>
+    </main>
+
+    <footer class="footer" role="contentinfo">
+        <p>&copy; <span id="current-year"></span> Ariadna | Red de Salud Mental · Paravachasca <br> Creado por <a href="https://wa.me/5493516575261" target="_blank" rel="noopener noreferrer">Lic. Bongiorno Nicolas</a></p>
+    </footer>
+
+    <div id="modal-mapa" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-content" style="max-width: 900px; padding: 1.5rem;">
+            <div class="modal-header" style="margin-bottom: 1rem;">
+                <h2>Profesionales en Mapa</h2>
+                <button id="btn-close-mapa" class="close-btn">&times;</button>
+            </div>
+            <button id="btn-mi-ubicacion" class="btn btn-outline" style="width: 100%; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: var(--bg-color);">
+                📍 Mostrar mi ubicación actual
+            </button>
+            <div id="map-container" style="height: 500px; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border); z-index: 1;"></div>
+        </div>
+    </div>
+
+    <div id="modal-paciente" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Mi Ficha Privada</h2>
+                <button id="btn-close-paciente" class="close-btn">&times;</button>
+            </div>
+            <div class="privacy-notice">🔒 <strong>Privacidad:</strong> Estos datos son 100% privados. Agilizan el contacto por WhatsApp.</div>
+            <form id="form-paciente">
+                <div class="form-group"><label>¿Cómo te llamas?</label><input type="text" id="paciente-nombre" required></div>
+                <div class="form-group"><label>Motivo principal</label><input type="text" id="paciente-motivo"></div>
+                <button type="submit" class="btn btn-primary full-width">Guardar mis datos</button>
+            </form>
+            <hr style="border: 0; border-top: 1px dashed var(--border); margin: 2rem 0 1.5rem 0;">
+            <div class="form-group">
+                <h3 style="font-size: 1.2rem; color: var(--primary-dark); font-family: 'DM Serif Display', serif;">Mis Profesionales Guardados</h3>
+                <div id="lista-favoritos-paciente" class="favoritos-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-registro" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Publicar Anuncio</h2>
+                <button id="btn-close-modal" class="close-btn">&times;</button>
+            </div>
+            <form id="form-profesional">
+                <input type="hidden" id="anuncio-id">
+                <div class="form-group"><label>Nombre Completo</label><input type="text" id="nombre" required></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Matrícula (MP/MN)</label><input type="text" id="matricula" required></div>
+                    <div class="form-group"><label>WhatsApp</label><input type="tel" id="whatsapp" required></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Especialidad</label><select id="categoria" required><option value="Psicólogo/a">Psicólogo/a</option><option value="Psiquiatra">Psiquiatra</option><option value="Acompañante Terapéutico">Acompañante Terapéutico</option><option value="Afín a la salud mental">Afín a la salud mental</option></select></div>
+                    <div class="form-group"><label>Modalidad</label><select id="modalidad" required><option value="Solo Online">Solo Online</option><option value="Solo Presencial">Solo Presencial</option><option value="Ambos (Online y Presencial)">Ambos (Online y Presencial)</option><option value="A Domicilio">A Domicilio</option></select></div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Grupos Etarios</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-item"><input type="checkbox" id="atencion-ninos" value="Niños"> Niños</label><label class="checkbox-item"><input type="checkbox" id="atencion-adolescentes"> Adolescentes</label><label class="checkbox-item"><input type="checkbox" id="atencion-adultos"> Adultos</label><label class="checkbox-item"><input type="checkbox" id="atencion-terceraEdad"> Tercera Edad</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Terapia</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-item"><input type="checkbox" id="terapia-individual"> Individual</label><label class="checkbox-item"><input type="checkbox" id="terapia-pareja"> De Pareja</label><label class="checkbox-item"><input type="checkbox" id="terapia-familia"> De Familia</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group"><label>Precio de Sesión (Opcional)</label><input type="text" id="precio"></div>
+                    <div class="form-group"><label>Enfoque</label><input type="text" id="terapia" required></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Direcciones de Atención (Presiona 'Enter' para separar)</label>
+                    <textarea id="direcciones" rows="2" required placeholder="Ej: Av. Belgrano 123, Alta Gracia"></textarea>
+                    <button type="button" id="btn-buscar-direccion" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; margin-top: 0.5rem; display: flex; align-items: center; gap: 0.3rem;">
+                        🔍 Buscar dirección en mapa
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <label style="color: var(--primary-dark); font-weight: bold;">📍 Ubicación Exacta</label>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Toca "Buscar dirección" arriba, o haz clic directamente en el mapa. <strong>Puedes arrastrar el marcador azul</strong> para ubicarlo en la puerta exacta.</p>
+                    <div id="form-map-container" style="height: 250px; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--primary); z-index: 1; margin-bottom: 0.5rem; background: #e2e8f0;"></div>
+                    <input type="hidden" id="form-lat">
+                    <input type="hidden" id="form-lng">
+                    <button type="button" id="btn-reset-map" class="btn btn-text" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; color: #ef4444;">Borrar marcador</button>
+                </div>
+
+                <div class="form-group"><label>Especialidades y Áreas (Opcional)</label><input type="text" id="specialties"></div>
+                <div class="form-group"><label>Obras Sociales / Prepagas</label><input type="text" id="obras" required></div>
+                <div class="form-group"><label>Sobre mí (Opcional)</label><textarea id="aboutMe" rows="3"></textarea></div>
+
+                <div class="form-row">
+                    <div class="form-group"><label>Instagram (Opcional)</label><input type="url" id="instagram"></div>
+                    <div class="form-group"><label>LinkedIn (Opcional)</label><input type="url" id="linkedin"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Facebook (Opcional)</label><input type="url" id="facebook"></div>
+                    <div class="form-group"><label>Sitio Web (Opcional)</label><input type="url" id="web"></div>
+                </div>
+                <button type="submit" id="btn-submit-profesional" class="btn btn-primary full-width">Guardar Anuncio</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-ficha" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-content ficha-content">
+            <div class="modal-header"><h2>Ficha del Profesional</h2><button id="btn-close-ficha" class="close-btn">&times;</button></div>
+            <div id="ficha-body"></div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>
